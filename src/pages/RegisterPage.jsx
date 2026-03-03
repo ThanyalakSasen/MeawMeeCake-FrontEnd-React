@@ -1,0 +1,412 @@
+import { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import authAPI from "../service/authService";
+import api from "../service/api";
+import { InputField } from "../components/inputField";
+import InputDate from "../components/inputDate";
+import { SelectInput } from "../components/selectInput";
+import ButtonSubmit from "../components/button";
+import axios from "axios";
+import { Col, Container, Row, Form } from "react-bootstrap";
+import loginPicture from "../assets/pictures/LoginRegisterPicture.png";
+import AddressSearch from "../components/AddressSearch";
+
+export default function Register() {
+  const navigate = useNavigate();
+  const [fullname, setFullname] = useState("");
+  const [birthdate, setBirthdate] = useState("");
+  const [email, setEmail] = useState("");
+  const googleId = useLocation().state?.googleId || "";
+  const [password, setPassword] = useState("");
+  const [phone, setPhone] = useState("");
+  const [allergyOptions, setAllergyOptions] = useState([]);
+  const [allergyLoading, setAllergyLoading] = useState(false);
+  const [hasAllergies, setHasAllergies] = useState(null);
+  const [selectedAllergy, setSelectedAllergy] = useState("");
+  const [selectedAllergies, setSelectedAllergies] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [addressLine, setAddressLine] = useState("");
+  const [selectedAddressLabel, setSelectedAddressLabel] = useState("");
+  const [selectedAddressMeta, setSelectedAddressMeta] = useState(null);
+
+  const handleHasAllergiesChange = (value) => {
+    setHasAllergies(value);
+    if (value === false) {
+      setSelectedAllergies([]);
+      setSelectedAllergy("");
+    }
+  };
+
+  const handleAddAllergy = () => {
+    if (selectedAllergy && !selectedAllergies.includes(selectedAllergy)) {
+      setSelectedAllergies([...selectedAllergies, selectedAllergy]);
+      setSelectedAllergy("");
+    }
+  };
+
+  const handleRemoveAllergy = (allergyValue) => {
+    setSelectedAllergies(selectedAllergies.filter((a) => a !== allergyValue));
+  };
+
+  useEffect(() => {
+    const fetchIngredients = async () => {
+      try {
+        setAllergyLoading(true);
+        const response = await api.get("/api/ingredient/allIngredient");
+
+        const ingredients = response?.data?.data || response?.data || [];
+
+        const options = ingredients.map((ingredient) => ({
+          value: ingredient._id, // แก้ให้ตรงกับ field จริงใน Model
+          label: ingredient.ingredient_name, // แก้ให้ตรงกับ field จริงใน Model
+        }));
+
+        setAllergyOptions(options);
+      } catch (error) {
+        console.error("ดึงข้อมูลวัตถุดิบไม่สำเร็จ:", error);
+      } finally {
+        setAllergyLoading(false);
+      }
+    };
+
+    fetchIngredients();
+  }, []);
+
+  const getAllergyLabel = (value) => {
+    const option = allergyOptions.find((opt) => opt.value === value);
+    return option ? option.label : value;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const response = await authAPI.register({
+        user_fullname: fullname,
+        email: email,
+        password: password,
+        user_phone: phone,
+        user_birthdate: birthdate,
+        user_allergies: selectedAllergies,
+        address_line: addressLine,
+        sub_district: selectedAddressMeta?.subdistrictNameTh || "",
+        district: selectedAddressMeta?.districtNameTh || "",
+        province: selectedAddressMeta?.provinceNameTh || "",
+        postal_code: selectedAddressMeta?.postalCode || "",
+        ...(googleId && { googleId: googleId }),
+      });
+
+      console.log("สมัครสำเร็จด้วย Local (provider: 'local')", response.data);
+      alert("สมัครสมาชิกเรียบร้อย กรุณาตรวจสอบอีเมลเพื่อยืนยันบัญชีของคุณ");
+      navigate("/verify-email");
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const message =
+          error.response?.data?.message || "เกิดข้อผิดพลาดในการสมัครสมาชิก";
+        alert(message);
+        console.log("สมัครไม่สำเร็จ:", message);
+        console.error("Error details:", error.response?.data);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const location = useLocation();
+  const isRegisterWithGoogle = location.state?.isRegisterWithGoogle;
+
+  return (
+    <Container fluid>
+      <Row style={{ display: "flex", width: "100%" }}>
+        <Col sm={4} style={{ padding: 0 }}>
+          <img
+            src={loginPicture}
+            alt="Login"
+            style={{ maxWidth: "100%", height: "auto" }}
+          />
+        </Col>
+        <Col sm={8} style={{ display: "flex", padding: "0" }}>
+          <div
+            style={{
+              width: "100%",
+              justifyItems: "center",
+              alignItems: "center",
+              margin: "10% 20%",
+            }}
+          >
+            <h4 style={{ marginBottom: "24px", fontWeight: "bold" }}>
+              สมัครสมาชิก
+            </h4>
+
+            <form onSubmit={handleSubmit} style={{ width: "100%" }}>
+              <InputField
+                label="ชื่อผู้ใช้งาน"
+                placeholder="ชื่อ - นามสกุล"
+                type="text"
+                value={fullname}
+                onChange={(e) => setFullname(e.target.value)}
+                required
+              />
+              <InputField
+                label="อีเมล"
+                placeholder="อีเมล"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+
+              {!isRegisterWithGoogle ? (
+                <>
+                  <InputField
+                    label="รหัสผ่าน"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
+                  <p style={{ fontSize: "12px", color: "red" }}>
+                    กรุณากรอกรหัสผ่านอย่างน้อย 6 ตัวอักษรขึ้นไป
+                  </p>
+                </>
+              ) : null}
+              <InputField
+                label={"กรอกที่อยู่สำหรับจัดส่ง"}
+                name="address_line1"
+                placeholder="บ้านเลขที่ หมู่ที่ ซอย ถนน"
+                value={addressLine}
+                onChange={(e) => setAddressLine(e.target.value)}
+                required={false}
+              />
+              <AddressSearch
+                label="ที่อยู่สำหรับจัดส่งสินค้า"
+                name="address"
+                value={selectedAddressLabel}
+                onChange={(e) => {
+                  setSelectedAddressLabel(e.target.value);
+                  if (!e.target.value) {
+                    setSelectedAddressMeta(null);
+                  }
+                }}
+                onSelect={(selectedAddress) => {
+                  setSelectedAddressLabel(selectedAddress.label);
+                  setSelectedAddressMeta(selectedAddress);
+                }}
+                placeholder="ค้นหาตำบล อำเภอ จังหวัด รหัสไปรษณีย์"
+                required={false}
+              />
+              <Row>
+                <Col md={6}>
+                  <InputDate
+                    label="วันเกิด"
+                    value={birthdate}
+                    onChange={(value) =>
+                      setBirthdate(
+                        value ? value.toISOString().split("T")[0] : "",
+                      )
+                    }
+                    required
+                  />
+                </Col>
+
+                <Col md={6}>
+                  <InputField
+                    label="เบอร์โทรติดต่อ"
+                    placeholder="0801234567"
+                    type="text"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    required
+                    maxLength={10}
+                    pattern="[0-9]*"
+                  />
+                </Col>
+              </Row>
+
+              <div style={{ marginBottom: "16px", marginTop: "24px" }}>
+                <label
+                  style={{
+                    display: "block",
+                    marginBottom: "12px",
+                    fontWeight: "500",
+                  }}
+                >
+                  มีประวัติการแพ้อาหาร / วัตถุดิบหรือไม่
+                </label>
+                <div style={{ display: "flex", gap: "16px" }}>
+                  <Form.Check
+                    type="radio"
+                    id="has-allergies-yes"
+                    name="hasAllergies"
+                    label="มี"
+                    checked={hasAllergies === true}
+                    onChange={() => handleHasAllergiesChange(true)}
+                    style={{ cursor: "pointer" }}
+                  />
+                  <Form.Check
+                    type="radio"
+                    id="has-allergies-no"
+                    name="hasAllergies"
+                    label="ไม่มี"
+                    checked={hasAllergies === false}
+                    onChange={() => handleHasAllergiesChange(false)}
+                    style={{ cursor: "pointer" }}
+                  />
+                </div>
+              </div>
+
+              {hasAllergies === true && (
+                <div style={{ marginBottom: "16px" }}>
+                  <label
+                    style={{
+                      display: "block",
+                      marginBottom: "8px",
+                      fontWeight: "500",
+                    }}
+                  >
+                    กรุณาเลือกวัตถุดิบที่แพ้
+                  </label>
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: "8px",
+                      alignItems: "flex-end",
+                    }}
+                  >
+                    <div style={{ flex: 1 }}>
+                      <SelectInput
+                        options={[
+                          {
+                            value: "",
+                            label: allergyLoading
+                              ? "กำลังโหลด..."
+                              : "เลือกวัตถุดิบที่แพ้",
+                          },
+                          ...allergyOptions,
+                        ]}
+                        value={selectedAllergy}
+                        onChange={(e) => setSelectedAllergy(e.target.value)}
+                        disabled={allergyLoading}
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleAddAllergy}
+                      disabled={!selectedAllergy}
+                      style={{
+                        padding: "8px 16px",
+                        backgroundColor: "#FBBC05",
+                        border: "none",
+                        borderRadius: "4px",
+                        cursor: selectedAllergy ? "pointer" : "not-allowed",
+                        opacity: selectedAllergy ? 1 : 0.6,
+                        fontWeight: "500",
+                        height: "38px",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      เพิ่ม
+                    </button>
+                  </div>
+
+                  {selectedAllergies.length > 0 && (
+                    <div
+                      style={{
+                        marginTop: "16px",
+                        padding: "16px",
+                        backgroundColor: "#FFF9E6",
+                        borderRadius: "8px",
+                        border: "1px solid #FBBC05",
+                      }}
+                    >
+                      <div style={{ fontWeight: "500", marginBottom: "12px" }}>
+                        คุณแพ้อาหาร/วัตถุดิบ
+                      </div>
+                      <div
+                        style={{
+                          display: "flex",
+                          flexWrap: "wrap",
+                          gap: "8px",
+                        }}
+                      >
+                        {selectedAllergies.map((allergy) => (
+                          <span
+                            key={allergy}
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "8px",
+                              padding: "6px 12px",
+                              backgroundColor: "white",
+                              borderRadius: "16px",
+                              border: "1px solid #ddd",
+                              fontSize: "14px",
+                            }}
+                          >
+                            {getAllergyLabel(allergy)}
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveAllergy(allergy)}
+                              style={{
+                                background: "none",
+                                border: "none",
+                                cursor: "pointer",
+                                fontSize: "18px",
+                                lineHeight: "1",
+                                color: "#666",
+                                padding: "0",
+                                marginLeft: "4px",
+                              }}
+                            >
+                              ×
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedAllergies.length === 0 && (
+                    <div
+                      style={{
+                        marginTop: "16px",
+                        padding: "16px",
+                        backgroundColor: "#FFF9E6",
+                        borderRadius: "8px",
+                        border: "1px solid #FBBC05",
+                      }}
+                    >
+                      <div style={{ fontWeight: "500", marginBottom: "8px" }}>
+                        คุณแพ้อาหาร/วัตถุดิบ
+                      </div>
+                      <div style={{ color: "#666", fontSize: "14px" }}>
+                        ยังไม่มีการเลือกอาหาร/วัตถุที่แพ้
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <ButtonSubmit
+                type="submit"
+                textButton="สมัครสมาชิก"
+                style={{
+                  backgroundColor: "#FBBC05",
+                  width: "100%",
+                  border: "0px",
+                  color: "black",
+                  fontWeight: "bold",
+                  marginTop: "24px",
+                  padding: "12px",
+                  borderRadius: "8px",
+                }}
+                disabled={loading}
+              />
+            </form>
+          </div>
+        </Col>
+      </Row>
+    </Container>
+  );
+}
