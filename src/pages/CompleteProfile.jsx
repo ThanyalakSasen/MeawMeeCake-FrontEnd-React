@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Container, Form, Button, Alert, Card, Spinner } from 'react-bootstrap';
-import authAPI from '../service/authService';
+import { authAPI } from '../service/api';
 
 function CompleteProfile() {
   const [searchParams] = useSearchParams();

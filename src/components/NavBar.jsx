@@ -1,5 +1,5 @@
 import { Container, Navbar, Nav, Dropdown, Spinner } from "react-bootstrap";
-import { authAPI } from "../service/authService";
+import { authAPI } from "../service/api";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 

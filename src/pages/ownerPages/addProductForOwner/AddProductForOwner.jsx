@@ -12,8 +12,9 @@ export default function AddProductForOwner() {
     setProductNameTh,
     productNameEng,
     setProductNameEng,
-    productTypes,
-    setProductTypes,
+    productTypeOptions,
+    selectedProductType,
+    setSelectedProductType,
     categoryLoading,
     productPrice,
     setProductPrice,
@@ -56,9 +57,9 @@ export default function AddProductForOwner() {
                   />
                   <SelectInput
                     label="ประเภทสินค้า *"
-                    options={productTypes}
-                    value={productTypes}
-                    onChange={(e) => setProductTypes(e.target.value)}
+                    options={productTypeOptions}
+                    value={selectedProductType}
+                    onChange={(e) => setSelectedProductType(e.target.value)}
                     disabled={categoryLoading} // disable ระหว่างโหลด
                   />
                   <TextArea

@@ -1,13 +1,16 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import api from "../../../service/api";
 
 export const useViewModel = () => {
+  const navigate = useNavigate();
   const [productNameTh, setProductNameTh] = useState("");
   const [productNameEng, setProductNameEng] = useState("");
-  const [productTypes, setProductTypes] = useState([
+  const [productTypeOptions, setProductTypeOptions] = useState([
     { value: "", label: "กรุณาเลือกประเภทสินค้า" },
   ]);
+  const [selectedProductType, setSelectedProductType] = useState("");
   const [categoryLoading, setCategoryLoading] = useState(false);
   const [productPrice, setProductPrice] = useState("");
   const [productDescription, setProductDescription] = useState("");
@@ -39,11 +42,15 @@ export const useViewModel = () => {
           { value: "", label: "กรุณาเลือกประเภทสินค้า" },
           ...categories.map((cat) => ({
             value: cat._id,
-            label: cat.category_name,
+            label:
+              cat.productcategoriesName ||
+              cat.category_name ||
+              cat.productCategory_name ||
+              "-",
           })),
         ];
 
-        setProductTypes(options);
+        setProductTypeOptions(options);
       } catch (error) {
         console.error("ดึงข้อมูล Category ไม่สำเร็จ:", error);
       } finally {
@@ -57,7 +64,12 @@ export const useViewModel = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!productNameTh || !productNameEng || !productTypes || !productPrice) {
+    if (
+      !productNameTh ||
+      !productNameEng ||
+      !selectedProductType ||
+      !productPrice
+    ) {
       await Swal.fire({
         icon: "error",
         title: "เกิดข้อผิดพลาด",
@@ -68,12 +80,16 @@ export const useViewModel = () => {
       return;
     }
 
+    const selectedTypeLabel =
+      productTypeOptions.find((opt) => opt.value === selectedProductType)
+        ?.label || "-";
+
     const result = await Swal.fire({
       title: "ยืนยันการเพิ่มสินค้า",
       html: `
                 <div style="text-align: left;">
                     <p><strong>ชื่อสินค้า:</strong> ${productNameTh} / ${productNameEng}</p>
-                    <p><strong>ประเภท:</strong> ${productTypes}</p>
+                    <p><strong>ประเภท:</strong> ${selectedTypeLabel}</p>
                     <p><strong>ราคา:</strong> ${productPrice} บาท</p>
                     </div>
             `,
@@ -94,7 +110,9 @@ export const useViewModel = () => {
       const formData = new FormData();
       formData.append("product_name_th", productNameTh);
       formData.append("product_name_eng", productNameEng);
-      formData.append("product_type", productTypes);
+      formData.append("productcategories", selectedProductType);
+      // Keep legacy key for compatibility with older endpoints.
+      formData.append("product_type", selectedProductType);
       formData.append("product_price", productPrice);
       formData.append("product_description", productDescription);
       formData.append("preparation_heating", preparationHeating);
@@ -135,17 +153,28 @@ export const useViewModel = () => {
 
         if (result.isConfirmed) {
           const newProductId = response.data.data?._id || response.data._id;
-          window.location.href = `/add-recipe/${newProductId}`;
+          if (!newProductId) {
+            await Swal.fire({
+              icon: "error",
+              title: "เกิดข้อผิดพลาด",
+              text: "ไม่พบรหัสสินค้าใหม่สำหรับไปหน้าเพิ่มสูตร",
+              confirmButtonText: "ตกลง",
+              confirmButtonColor: "#d33",
+            });
+            return;
+          }
+          navigate(`/add-recipes/${newProductId}`);
         } else {
-          window.location.href = "/product-manage";
+          navigate("/product-manage");
         }
 
         setProductNameTh("");
         setProductNameEng("");
-        setProductTypes("");
-        setProductNameEng("");
+        setSelectedProductType("");
         setProductPrice("");
         setProductDescription("");
+        setPreparationHeating("");
+        setHasHeatingMethod(null);
         setRecipeId("");
         setImage(null);
       }
@@ -169,8 +198,9 @@ export const useViewModel = () => {
     setProductNameTh,
     productNameEng,
     setProductNameEng,
-    productTypes,
-    setProductTypes,
+    productTypeOptions,
+    selectedProductType,
+    setSelectedProductType,
     categoryLoading,
     productPrice,
     setProductPrice,

@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import authAPI from "../service/authService";
 import api from "../service/api";
 import { InputField } from "../components/inputField";
 import InputDate from "../components/inputDate";
@@ -82,7 +81,7 @@ export default function Register() {
     setLoading(true);
 
     try {
-      const response = await authAPI.register({
+      const response = await api.post("/auth/register", {
         user_fullname: fullname,
         email: email,
         password: password,

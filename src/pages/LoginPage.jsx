@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { InputField } from "../components/inputField";
 import InputCheckbox from "../components/inputcheckbox";
 import ButtonSubmit from "../components/button";
-import { authAPI } from "../service/authService";
+import { authAPI } from "../service/api";
 import axios from "axios";
 import { Col, Container, Row } from "react-bootstrap";
 import loginPicture from "../assets/pictures/LoginRegisterPicture.png";

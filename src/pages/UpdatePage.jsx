@@ -1,25 +1,16 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import axios from "axios";
+import api from "../service/api";
 import { Container, Row, Col, Form } from "react-bootstrap";
 import { useAuth } from "../context/AuthContext";
 
 import InputDate from "../components/inputDate";
-import { InputField } from "../components/InputField";
+import { InputField } from "../components/inputField";
 import { SelectInput } from "../components/selectInput";
 import ButtonSubmit from "../components/button";
 import loginPicture from "../assets/pictures/LoginRegisterPicture.png";
 
-const allergyOptions = [
-  { value: "milk", label: "นม" },
-  { value: "eggs", label: "ไข่" },
-  { value: "peanuts", label: "ถั่วลิสง" },
-  { value: "soy", label: "ถั่วเหลือง" },
-  { value: "wheat", label: "ข้าวสาลี / กลูเตน" },
-  { value: "fish", label: "ปลา" },
-  { value: "shellfish", label: "อาหารทะเล" },
-  { value: "nuts", label: "ถั่วต่าง ๆ" },
-];
+
 
 export default function UpdatePage() {
   const navigate = useNavigate();
@@ -30,10 +21,14 @@ export default function UpdatePage() {
   const [email, setEmail] = useState("");
   const [birthdate, setBirthdate] = useState("");
   const [phone, setPhone] = useState("");
-  const [hasAllergies, setHasAllergies] = useState(null);
+const [allergyOptions, setAllergyOptions] = useState([]);
+const [hasAllergies, setHasAllergies] = useState(null);
   const [selectedAllergy, setSelectedAllergy] = useState("");
   const [selectedAllergies, setSelectedAllergies] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [addressLine, setAddressLine] = useState("");
+  const [selectedAddressLabel, setSelectedAddressLabel] = useState("");
+
 
   /* -----------------------------
      1️⃣ รับ token จาก Google callback
@@ -55,10 +50,9 @@ export default function UpdatePage() {
         const token = localStorage.getItem("token");
         if (!token) return navigate("/login");
 
-        const res = await axios.get(
-          "http://localhost:3000/api/auth/me",
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+        const res = await api.get("/api/auth/me", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
         console.log("👤 LOAD USER:", res.data.user);
 
@@ -66,6 +60,10 @@ export default function UpdatePage() {
         setFullname(user.user_fullname || "");
         setEmail(user.email || "");
         setSelectedAllergies(user.user_allergies || []);
+        setBirthdate(user.user_birthdate || "");
+        setPhone(user.user_phone || "");
+        setAddressLine(user.address_line || "");
+        setSelectedAddressLabel(user.address_label || "");
       } catch (err) {
         console.error("❌ LOAD USER ERROR:", err);
         navigate("/login");
@@ -78,9 +76,9 @@ export default function UpdatePage() {
   /* -----------------------------
      Allergies handlers
   ------------------------------*/
-  const handleHasAllergiesChange = (value) => {
+    const handleHasAllergiesChange = (value) => {
     setHasAllergies(value);
-    if (!value) {
+    if (value === false) {
       setSelectedAllergies([]);
       setSelectedAllergy("");
     }
@@ -93,9 +91,31 @@ export default function UpdatePage() {
     }
   };
 
-  const handleRemoveAllergy = (value) => {
-    setSelectedAllergies(selectedAllergies.filter((a) => a !== value));
+  const handleRemoveAllergy = (allergyValue) => {
+    setSelectedAllergies(selectedAllergies.filter((a) => a !== allergyValue));
   };
+
+  useEffect(() => {
+    const fetchIngredients = async () => {
+      try {
+        const response = await api.get("/api/ingredient/allIngredient");
+
+        const ingredients = response?.data?.data || response?.data || [];
+
+        const options = ingredients.map((ingredient) => ({
+          value: ingredient._id, // แก้ให้ตรงกับ field จริงใน Model
+          label: ingredient.ingredient_name, // แก้ให้ตรงกับ field จริงใน Model
+        }));
+
+        setAllergyOptions(options);
+      } catch (error) {
+        console.error("ดึงข้อมูลวัตถุดิบไม่สำเร็จ:", error);
+      }
+    };
+
+    fetchIngredients();
+  }, []);
+
   const getAllergyLabel = (value) => {
     const option = allergyOptions.find((opt) => opt.value === value);
     return option ? option.label : value;
@@ -131,8 +151,8 @@ export default function UpdatePage() {
 
       console.log("📤 UPDATE PAYLOAD:", payload);
 
-      const res = await axios.put(
-        "http://localhost:3000/api/auth/complete-profile",
+      const res = await api.put(
+        "/api/auth/complete-profile",
         payload,
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -146,7 +166,7 @@ export default function UpdatePage() {
     } catch (error) {
       console.error("❌ UPDATE ERROR:", error);
       alert(
-        axios.isAxiosError(error)
+        api.isAxiosError(error)
           ? error.response?.data?.message || "เกิดข้อผิดพลาด"
           : "เกิดข้อผิดพลาด"
       );
@@ -203,6 +223,27 @@ export default function UpdatePage() {
                     required
                   />
                 </Col>
+                 <InputField
+                label={"กรอกที่อยู่สำหรับจัดส่ง"}
+                name="address_line1"
+                placeholder="บ้านเลขที่ หมู่ที่ ซอย ถนน"
+                value={addressLine}
+                onChange={(e) => setAddressLine(e.target.value)}
+                required={false}
+              />
+              <AddressSearch
+                label="ที่อยู่สำหรับจัดส่งสินค้า"
+                name="address"
+                value={selectedAddressLabel}
+                onChange={(e) => {
+                  setSelectedAddressLabel(e.target.value);
+                }}
+                onSelect={(selectedAddress) => {
+                  setSelectedAddressLabel(selectedAddress.label);
+                }}
+                placeholder="ค้นหาตำบล อำเภอ จังหวัด รหัสไปรษณีย์"
+                required={false}
+              />
               </Row>
 
               <div style={{ marginBottom: "16px", marginTop: "24px" }}>

@@ -8,7 +8,7 @@ import {
 } from "react-bootstrap";
 import InformationEmployeeForOwner from "../components/informationEmplyeeForOwner";
 import Layout from "../components/Layout";
-import { authAPI } from "../service/authService";
+import { authAPI } from "../service/api";
 
 export default function Dashboard() {
   const navigate = useNavigate();

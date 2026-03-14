@@ -1,96 +1,162 @@
-.sidebar-link {
-  color: black;
-  padding: 8px 12px;
-  border-radius: 6px;
-  transition: background-color 0.2s ease;
-}
-
-.sidebar-link:hover {
-  background-color: #ffca45;
-  color: black;
-}
-
-.sidebar-sub-link {
-  font-size: 14px;
-  color: black;
-  padding: 6px 12px;
-  border-radius: 6px;
-  transition: background-color 0.2s ease;
-}
-
-.sidebar-sub-link:hover {
-  background-color: #ffca45;
-  color: black;
-}
-.sidebar-active {
-  background-color: #ffca45;
-  color: black;
-}
-
-/* ===== Sidebar container ===== */
-.sidebar-desktop {
-  background: #ffffff;
-  padding: 16px;
-  height: 100vh;
+/* ===== โครง sidebar หลัก ===== */
+.sidebar {
+  width: 100%;
+  min-height: 100vh;
+  padding: 20px 18px;
+  display: flex;
+  flex-direction: column;
   border-right: 1px solid #e5e7eb;
+  background: #ffffff;
+  box-sizing: border-box;
+  overflow-y: auto;
 }
 
-/* ===== Menu list ===== */
-.sidebar-menu {
-  gap: 10px;
+.sidebar-top {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
-/* ===== Menu card ===== */
-.sidebar-item {
-  border: 1px solid #d1d5db;
-  border-radius: 10px;
-  overflow: hidden;
-  background: #fff;
+.sidebar-logo {
+  width: 100%;
+  max-width: 132px;
+  display: block;
+  margin: 0 auto 18px;
 }
 
-/* ===== Header ===== */
-.sidebar-item-header {
+/* ===== เมนูหลัก ===== */
+.menu {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 12px;
+}
+
+.menu li {
+  margin-bottom: 6px;
+}
+
+.menu a {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 12px 14px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: background-color 0.2s ease;
-}
-
-.sidebar-item-header:hover {
-  background-color: #f8fafc;
-}
-
-.sidebar-item-header.active {
-  background-color: #f1f5f9;
-}
-
-/* ===== Chevron ===== */
-.chevron {
-  transition: transform 0.25s ease;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  text-decoration: none;
+  color: #374151;
   font-size: 14px;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.menu a:hover {
+  background: #f3f4f6;
+  color: #111827;
+}
+
+.icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.active > a {
+  background: #e8efff;
+  color: #2563eb;
+}
+
+/* ===== parent dropdown ===== */
+.menu-parent {
+  width: 100%;
+  border: none;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  color: #374151;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.menu-parent:hover {
+  background: #f3f4f6;
+}
+
+.menu-parent.active {
+  background: #e8efff;
+  color: #2563eb;
+}
+
+.chevron {
+  margin-left: auto;
+  transition: transform 0.2s ease;
 }
 
 .chevron.rotate {
   transform: rotate(180deg);
 }
 
-/* ===== Submenu ===== */
-.sidebar-submenu {
-  border-top: 1px solid #e5e7eb;
-  padding: 6px 0;
-  background: #fafafa;
+/* ===== submenu ===== */
+.submenu {
+  list-style: none;
+  padding-left: 28px;
+  margin-top: 4px;
+  margin-bottom: 12px;
 }
 
-.sidebar-submenu-item {
+.submenu li {
+  list-style: none;
+}
+
+.submenu a {
+  display: block;
+  padding: 8px 10px;
+  border-radius: 8px;
+  color: #6b7280;
+}
+
+.submenu a:hover {
+  background: #f3f4f6;
+  color: #111827;
+}
+
+.sub-active,
+.submenu a.sub-active {
+  background: #e8efff;
+  color: #2563eb;
+  font-weight: 600;
+  position: relative;
+}
+
+.sub-active::before,
+.submenu a.sub-active::before {
+  content: "";
+  position: absolute;
+  left: -10px;
+  top: 6px;
+  height: 70%;
+  width: 3px;
+  background: #2563eb;
+  border-radius: 4px;
+}
+
+/* ===== ปุ่มออกจากระบบ ===== */
+.menu-logout {
+  width: 100%;
+  border: none;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
   font-size: 14px;
-  padding: 8px 16px;
-  color: #374151;
+  color: #dc2626;
+  cursor: pointer;
+  transition: background 0.2s ease;
 }
 
-.sidebar-submenu-item:hover {
-  background-color: #e5e7eb;
-  color: #000;
+.menu-logout:hover {
+  background: #fee2e2;
 }

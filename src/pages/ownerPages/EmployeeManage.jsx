@@ -32,12 +32,14 @@ export default function EmployeeManage() {
         console.log("Employees data:", response.data.data);
         console.log("Number of employees:", response.data.data.length);
         
-        // Filter เฉพาะพนักงานที่ไม่ได้ถูก soft delete
-        const activeEmployees = response.data.data.filter(
-          (emp) => emp.softDelete === false
+        // Treat missing/null softDelete as active to support legacy documents.
+        const activeEmployees = (response.data.data || []).filter(
+          (emp) => emp.softDelete !== true
         );
         console.log("Active employees after filter:", activeEmployees.length);
         setEmployees(activeEmployees);
+      } else {
+        setError("ไม่สามารถดึงรายชื่อพนักงานได้");
       }
     } catch (err) {
       console.error("Fetch Employees Error:", err);
@@ -111,9 +113,13 @@ const handleSoftDelete = async (employeeId) => {
 
   const filteredEmployees = employees.filter(
     (emp) =>
-      emp.user_fullname?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (emp.user_fullname || emp.userFullname)
+        ?.toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
       emp.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      emp.emp_id?.toLowerCase().includes(searchTerm.toLowerCase()),
+      (emp.emp_id || emp.empId)
+        ?.toLowerCase()
+        .includes(searchTerm.toLowerCase()),
   );
 
   return (
@@ -200,10 +206,10 @@ const handleSoftDelete = async (employeeId) => {
                 ) : (
                   filteredEmployees.map((employee) => (
                     <tr key={employee._id} style={{ textAlign: "center" }}>
-                      <td>{employee.emp_id || "-"}</td>
-                      <td>{employee.user_fullname}</td>
+                      <td>{employee.emp_id || employee.empId || "-"}</td>
+                      <td>{employee.user_fullname || employee.userFullname || "-"}</td>
                       <td>{employee.email}</td>
-                      <td>{employee.user_phone || "-"}</td>
+                      <td>{employee.user_phone || employee.userPhone || "-"}</td>
 
                       <td>
                         <Button

@@ -80,7 +80,6 @@ const typeEmployeeOptions = [
   { value: "", label: "กรุณาเลือกประเภทพนักงาน" },
   { value: "Full-time", label: "เต็มเวลา" },
   { value: "Part-time", label: "พาร์ทไทม์" },
-  { value: "Daily", label: "รายวัน" },
 ];
 
   // ฟังก์ชันแปลงวันที่เป็น ISO format

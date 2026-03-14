@@ -10,7 +10,7 @@ import OnwerDashboardComponent from "../components/OwnerDashboardComponent";
 import { CustomerDashboardComponent } from "../components/CustomerDashboardComponent";
 import { EmployeeDashboardComponent } from "../components/EmployeeDashboardComponent";
 import Layout from "../components/Layout";
-import { authAPI } from "../service/authService";
+import { authAPI } from "../service/api";
 
 export default function Dashboard() {
   const navigate = useNavigate();

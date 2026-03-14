@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Container, Spinner } from "react-bootstrap";
 import axios from "axios";
-import authAPI from "../service/authService";
+import { authAPI } from "../service/api";
 
 export default function VerifyEmailPage() {
   const { token } = useParams();
