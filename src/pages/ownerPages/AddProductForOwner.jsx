@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { InputField } from "../../components/inputField";
+import { InputField } from "../../components/InputField";
 import SideBarMenu from "../../components/SideBarMenu";
 import { SelectInput } from "../../components/selectInput";
 import ImageUpload from "../../components/imageUploadComponent";

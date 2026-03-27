@@ -2,11 +2,12 @@ import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import authAPI from "../service/authService";
 import api from "../service/api";
-import { InputField } from "../components/inputField";
+import { InputField } from "../components/InputField";
 import InputDate from "../components/inputDate";
 import { SelectInput } from "../components/selectInput";
 import ButtonSubmit from "../components/button";
 import axios from "axios";
+import Swal from "sweetalert2";
 import { Col, Container, Row, Form } from "react-bootstrap";
 import loginPicture from "../assets/pictures/LoginRegisterPicture.png";
 import AddressSearch from "../components/AddressSearch";
@@ -98,15 +99,32 @@ export default function Register() {
       });
 
       console.log("สมัครสำเร็จด้วย Local (provider: 'local')", response.data);
-      alert("สมัครสมาชิกเรียบร้อย กรุณาตรวจสอบอีเมลเพื่อยืนยันบัญชีของคุณ");
+      await Swal.fire({
+        icon: "success",
+        title: "สมัครสมาชิกสำเร็จ",
+        text: "กรุณาตรวจสอบอีเมลเพื่อยืนยันบัญชีของคุณ",
+        confirmButtonText: "ตกลง",
+      });
       navigate("/verify-email");
     } catch (error) {
       if (axios.isAxiosError(error)) {
         const message =
           error.response?.data?.message || "เกิดข้อผิดพลาดในการสมัครสมาชิก";
-        alert(message);
+        await Swal.fire({
+          icon: "error",
+          title: "สมัครสมาชิกไม่สำเร็จ",
+          text: message,
+          confirmButtonText: "ตกลง",
+        });
         console.log("สมัครไม่สำเร็จ:", message);
         console.error("Error details:", error.response?.data);
+      } else {
+        await Swal.fire({
+          icon: "error",
+          title: "เกิดข้อผิดพลาด",
+          text: "ไม่สามารถสมัครสมาชิกได้ กรุณาลองใหม่อีกครั้ง",
+          confirmButtonText: "ตกลง",
+        });
       }
     } finally {
       setLoading(false);
